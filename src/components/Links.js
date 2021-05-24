@@ -6,8 +6,8 @@ const Link = ({ notify }) => {
   const [links, setLinks] = useState([]);
   const [currentLinkId, setCurrentLinkId] = useState("");
 
-  const getLinks = () => {
-    db.collection("links").onSnapshot((querySnapshot) => {
+  const getLinks = async () => {
+    await db.collection("links").onSnapshot((querySnapshot) => {
       const docs = [];
       querySnapshot.forEach((doc) => {
         docs.push({
@@ -20,8 +20,18 @@ const Link = ({ notify }) => {
   };
 
   const addOrEditLink = async (linkObject) => {
-    await db.collection("links").doc().set(linkObject);
-    notify("Added successfully.", "success");
+    try {
+      if (currentLinkId === "") {
+        await db.collection("links").doc().set(linkObject);
+        notify("Link created successfully.", "success", 2000);
+      } else {
+        await db.collection("links").doc(currentLinkId).update(linkObject);
+        notify("Link updated successfully.", "info", 2000);
+        setCurrentLinkId("");
+      }
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   const onDeleteLink = async (id) => {
@@ -29,7 +39,7 @@ const Link = ({ notify }) => {
 
     if (yes) {
       await db.collection("links").doc(id).delete();
-      notify("Deleted successfully.", "error");
+      notify("Deleted successfully.", "error", 2000);
     }
   };
 
@@ -40,7 +50,7 @@ const Link = ({ notify }) => {
   return (
     <>
       <div className="col-md-4 p-2">
-        <LinksForm {...{ addOrEditLink, currentLinkId, links }} />
+        <LinksForm {...{ addOrEditLink, currentLinkId, links, notify }} />
       </div>
       <div className="col-md-8 p-2">
         {links.map((link) => (

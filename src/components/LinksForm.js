@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import db from "../firebase";
 
-const LinksForm = ({ addOrEditLink, currentLinkId, links }) => {
+const LinksForm = ({ addOrEditLink, currentLinkId, links, notify }) => {
   const initValues = {
     url: "",
     name: "",
@@ -10,8 +10,26 @@ const LinksForm = ({ addOrEditLink, currentLinkId, links }) => {
 
   const [values, setValues] = useState({ ...initValues });
 
+  const validURL = (str) => {
+    var pattern = new RegExp(
+      "^(https?:\\/\\/)?" + // protocol
+        "((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|" + // domain name
+        "((\\d{1,3}\\.){3}\\d{1,3}))" + // OR ip (v4) address
+        "(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*" + // port and path
+        "(\\?[;&a-z\\d%_.~+=-]*)?" + // query string
+        "(\\#[-a-z\\d_]*)?$",
+      "i"
+    ); // fragment locator
+    return !!pattern.test(str);
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    if (!validURL(values.url)) {
+      return notify("Invalid URL, try again!", "warning", 1000);
+    }
+
     addOrEditLink(values);
     setValues({ ...initValues });
   };
@@ -23,7 +41,7 @@ const LinksForm = ({ addOrEditLink, currentLinkId, links }) => {
 
   const getLinkById = async (id) => {
     const doc = await db.collection("links").doc(id).get();
-    console.log(doc.data());
+    setValues({ ...doc.data() });
   };
 
   useEffect(() => {
@@ -73,7 +91,9 @@ const LinksForm = ({ addOrEditLink, currentLinkId, links }) => {
         ></textarea>
       </div>
 
-      <button className="btn btn-primary btn-block">Save</button>
+      <button className="btn btn-primary btn-block">
+        {currentLinkId === "" ? "Save" : "Update"}
+      </button>
     </form>
   );
 };

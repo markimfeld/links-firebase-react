@@ -4,7 +4,8 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 function App() {
-  const notify = (msg, type) => toast(msg, { type: type });
+  const notify = (msg, type, autoClose) =>
+    toast(msg, { type: type, autoClose: autoClose });
 
   return (
     <div className="container p-4">
